@@ -1,5 +1,64 @@
 const async = require('async');
 const INTERNAL = Symbol('INTERNAL');
+
+/**
+ * @name PromisePlaceholder.withAsync
+ * @description Ability to pass custom async library such as another version of async or any other library.
+ *  Will map that libraries method instead of async as above
+ * @example
+ *  // Instead of 
+ *      new PromisePlaceholder //(See below),
+ *      new (PromisePlaceholder.withAsync(customAsyncOrOtherLib)) // The outer brackets are necessary
+ */
+const withAsync = function(async) {
+    class PromisePlaceholder {
+        constructor() {
+            const internal = {
+                refs: [],
+                parallels: []
+            }
+            const refs = internal.refs;
+            const parallels = internal.parallels;
+            const f = (obj) => {
+                Object.entries(obj).forEach(([k, v]) => {
+                    if (v instanceof Function) {
+                        refs.push({ obj, k });
+                        parallels.push(v);
+                    }
+                });
+                return obj;
+            };
+
+            Object.setPrototypeOf(f, PromisePlaceholder.prototype);
+            f[INTERNAL] = internal;
+
+            return f;
+        }
+
+        async exec() {
+            return this.execParallel();
+        }
+    }
+
+    Object.keys(async).forEach(asyncKey => {
+        const execAsyncKey = 'exec' + asyncKey[0].toUpperCase() + asyncKey.substr(1);
+        PromisePlaceholder.prototype[execAsyncKey] = async function (...args) {
+            const internal = this[INTERNAL];
+            const refs = internal.refs;
+            const parallels = internal.parallels;
+
+            args.unshift(parallels);
+            const results = await async[asyncKey].apply(async, args);
+            refs.forEach(({ obj, k }, i) => {
+                obj[k] = results[i];
+            });
+            return results;
+        }
+    });
+
+    return PromisePlaceholder;
+}
+
 /**
  * @description Creates a placeholder object which can be used to keep functions which can be called in parallel and post execution, the values will be assigned at proper places!
  * @example
@@ -50,49 +109,9 @@ const INTERNAL = Symbol('INTERNAL');
  *    ... etc
  *    2. exec is short for execParallel which uses async.parallel <br/>
  */
-class PromisePlaceholder {
-    constructor() {
-        const internal = {
-            refs: [],
-            parallels: []
-        }
-        const refs = internal.refs;
-        const parallels = internal.parallels;
-        const f = (obj) => {
-            Object.entries(obj).forEach(([k, v]) => {
-                if (v instanceof Function) {
-                    refs.push({ obj, k });
-                    parallels.push(v);
-                }
-            });
-            return obj;
-        };
+const PromisePlaceholder = withAsync(async);
 
-        Object.setPrototypeOf(f, PromisePlaceholder.prototype);
-        f[INTERNAL] = internal;
 
-        return f;
-    }
-
-    async exec() {
-        return this.execParallel();
-    }
-}
-
-Object.keys(async).forEach(asyncKey => {
-    const execAsyncKey = 'exec' + asyncKey[0].toUpperCase() + asyncKey.substr(1);
-    PromisePlaceholder.prototype[execAsyncKey] = async function (...args) {
-        const internal = this[INTERNAL];
-        const refs = internal.refs;
-        const parallels = internal.parallels;
-
-        args.unshift(parallels);
-        const results = await async[asyncKey].apply(async, args);
-        refs.forEach(({ obj, k }, i) => {
-            obj[k] = results[i];
-        });
-        return results;
-    }
-});
+PromisePlaceholder.withAsync = withAsync;
 
 module.exports = PromisePlaceholder;

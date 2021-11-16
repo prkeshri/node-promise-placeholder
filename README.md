@@ -21,14 +21,12 @@
 ```sh
 npm install
 ```
-
 <a name="PromisePlaceholder"></a>
 
-<a name="new_PromisePlaceholder_new"></a>
-
-### new PromisePlaceholder()
+## PromisePlaceholder
 Creates a placeholder object which can be used to keep functions which can be called in parallel and post execution, the values will be assigned at proper places!
 
+**Kind**: global constant  
 **Example**  
 ```js
 // Consider the following scenario where we need complete data on teams.
@@ -71,12 +69,26 @@ Creates a placeholder object which can be used to keep functions which can be ca
      })
  }
 ```
-**Notes**: 
-   1. All the methods of async library are mapped with exec followed by first letter uppercase method name. <br/>
+**Notes**: 1. All the methods of async library are mapped with exec followed by first letter uppercase method name. <br/>
    For example: <br/>
    ```async.parallelLimit``` will be used when ```pp.execParallelLimit(2)``` will be called // This will make 2 concurrent calls at a time <br/>
    ... etc
    2. exec is short for execParallel which uses async.parallel <br/>  
+
+<hr/>
+<a name="PromisePlaceholder.withAsync"></a>
+
+### PromisePlaceholder.withAsync
+Ability to pass custom async library such as another version of async or any other library.
+ Will map that libraries method instead of async as above
+
+**Kind**: static property of [<code>PromisePlaceholder</code>](#PromisePlaceholder)  
+**Example**  
+```js
+// Instead of 
+     new PromisePlaceholder //(See below),
+     new (PromisePlaceholder.withAsync(customAsyncOrOtherLib)) // The outer brackets are necessary
+```
 
 ## Run tests
 
