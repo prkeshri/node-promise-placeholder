@@ -42,7 +42,7 @@ Creates a placeholder object which can be used to keep functions which can be ca
              retired: async () => getRetiredPlayersFromApi(),
              joinedIn2007: async () => getPlayersFromApi(2007),
              joinedLater: pp({
-                     async () => getJoinedLaterThanFromApi(2007)
+                    2008: async () => getJoinedLaterThanFromApi(2007)
              })
          })
      })
@@ -56,17 +56,17 @@ Creates a placeholder object which can be used to keep functions which can be ca
 
  console.log(obj); // will log:
  {
-     data1: pp({
+     data1: {
          teams: ['team1','team2'],
-         playersInfo: pp({
+         playersInfo: {
              active: ['activeplayer1', 'activeplayer2'],
              retired: <retired player list>,
              joinedIn2007: <desired list>,
-             joinedLater: pp({
-                     async () => <desired list>
-             })
-         })
-     })
+             joinedLater: {
+                    2008: <desired list>
+             }
+         }
+     }
  }
 ```
 **Notes**: 1. All the methods of async library are mapped with exec followed by first letter uppercase method name. <br/>

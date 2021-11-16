@@ -75,7 +75,7 @@ const withAsync = function(async) {
  *              retired: async () => getRetiredPlayersFromApi(),
  *              joinedIn2007: async () => getPlayersFromApi(2007),
  *              joinedLater: pp({
- *                      async () => getJoinedLaterThanFromApi(2007)
+ *                      2008: async () => getJoinedLaterThanFromApi(2007)
  *              })
  *          })
  *      })
@@ -89,17 +89,17 @@ const withAsync = function(async) {
  * 
  *  console.log(obj); // will log:
  *  {
- *      data1: pp({
+ *      data1: {
  *          teams: ['team1','team2'],
- *          playersInfo: pp({
+ *          playersInfo: {
  *              active: ['activeplayer1', 'activeplayer2'],
  *              retired: <retired player list>,
  *              joinedIn2007: <desired list>,
- *              joinedLater: pp({
- *                      async () => <desired list>
- *              })
- *          })
- *      })
+ *              joinedLater: {
+ *                      2008: <desired list>
+ *              }
+ *          }
+ *      }
  *  }
  * 
  * @notes 
