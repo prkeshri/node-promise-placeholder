@@ -1,5 +1,6 @@
 const async = require('async');
 const INTERNAL = Symbol('INTERNAL');
+const utils = require('./utils');
 
 /**
  * @name PromisePlaceholder.withAsync
@@ -10,12 +11,12 @@ const INTERNAL = Symbol('INTERNAL');
  *      new PromisePlaceholder //(See below),
  *      new (PromisePlaceholder.withAsync(customAsyncOrOtherLib)) // The outer brackets are necessary
  */
-const withAsync = function(async) {
+const withAsync = function (async) {
     class PromisePlaceholder {
         constructor() {
             const internal = {
                 refs: [],
-                parallels: []
+                parallels: [],
             }
             const refs = internal.refs;
             const parallels = internal.parallels;
@@ -35,8 +36,46 @@ const withAsync = function(async) {
             return f;
         }
 
+        /**
+         * @description Calls async.parallel and stores the values at the respective places!
+         * @returns Result of async.parallel (may be discarded)
+         */
         async exec() {
             return this.execParallel();
+        }
+
+        /**
+         * @description Instead of calling the promisePlaceholder at every step, it may be desirable to deep iterate the object and collect all the functions!
+         * @param { Object } obj 
+         * @returns { PromisePlaceholder }
+         * 
+         * @example 
+         *  // In the example for {@link Placeholder}, instead of wrapping every object having a promise inside a pp() call,
+         *  // just call once like:
+         *  const obj = {
+         *      data1: {
+         *          teams: async () => getTeamsFromApi(),
+         *          playersInfo: {
+         *              active: async () => getActivePlayersFromApi(),
+         *              retired: async () => getRetiredPlayersFromApi(),
+         *              joinedIn2007: async () => getPlayersFromApi(2007),
+         *              joinedLater: {
+         *                      2008: async () => getJoinedLaterThanFromApi(2007)
+         *              }
+         *          }
+         *      }
+         *  }
+         * 
+         * // Now:
+         * await (new PromisePlaceholder()).collect(obj).exec();
+         * After await resumes, obj will have all the values instead of functions! 
+         */
+        collect(obj) {
+            const f = this;
+            utils.iterEx(obj, (o) => {
+                f(o);
+            });
+            return f;
         }
     }
 
@@ -52,6 +91,7 @@ const withAsync = function(async) {
             refs.forEach(({ obj, k }, i) => {
                 obj[k] = results[i];
             });
+
             return results;
         }
     });
@@ -81,6 +121,8 @@ const withAsync = function(async) {
  *      })
  *  }
  * 
+ *  // Note: pp() -> This call collects all the keys with value as a function in the object. It DOES NOT iterate deep, that's the reason pp() is should be called on every object which has a function value in any key which should be included in a parallel call.
+ *  // In case of deep-iteration is deserved, see {@link PromisePlaceholder#collect}
  *  // Now, we need all the async calls to execute and the value to be set at the respective places.
  *  await pp.exec(); // By default executes async.parallel(); ,, other async.method can be used as an uppercase version (Example below)
  *  
@@ -110,7 +152,6 @@ const withAsync = function(async) {
  *    2. exec is short for execParallel which uses async.parallel <br/>
  */
 const PromisePlaceholder = withAsync(async);
-
 
 PromisePlaceholder.withAsync = withAsync;
 

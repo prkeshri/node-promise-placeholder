@@ -1,6 +1,6 @@
 <h1 align="center">Welcome to promise-placeholder 👋</h1>
 <p>
-  <img alt="Version" src="https://img.shields.io/badge/version-1.0.0-blue.svg?cacheSeconds=2592000" />
+  <img alt="Version" src="https://img.shields.io/badge/version-1.2.1-blue.svg?cacheSeconds=2592000" />
   <a href="https://github.com/prkeshri/node-promise-placeholder#readme" target="_blank">
     <img alt="Documentation" src="https://img.shields.io/badge/documentation-yes-brightgreen.svg" />
   </a>
@@ -42,12 +42,14 @@ Creates a placeholder object which can be used to keep functions which can be ca
              retired: async () => getRetiredPlayersFromApi(),
              joinedIn2007: async () => getPlayersFromApi(2007),
              joinedLater: pp({
-                    2008: async () => getJoinedLaterThanFromApi(2007)
+                     2008: async () => getJoinedLaterThanFromApi(2007)
              })
          })
      })
  }
 
+ // Note: pp() -> This call collects all the keys with value as a function in the object. It DOES NOT iterate deep, that's the reason pp() is should be called on every object which has a function value in any key which should be included in a parallel call.
+ // In case of deep-iteration is deserved, see [collect](#PromisePlaceholder+collect)
  // Now, we need all the async calls to execute and the value to be set at the respective places.
  await pp.exec(); // By default executes async.parallel(); ,, other async.method can be used as an uppercase version (Example below)
  
@@ -63,7 +65,7 @@ Creates a placeholder object which can be used to keep functions which can be ca
              retired: <retired player list>,
              joinedIn2007: <desired list>,
              joinedLater: {
-                    2008: <desired list>
+                     2008: <desired list>
              }
          }
      }
@@ -75,7 +77,62 @@ Creates a placeholder object which can be used to keep functions which can be ca
    ... etc
    2. exec is short for execParallel which uses async.parallel <br/>  
 
-<hr/>
+* [PromisePlaceholder](#PromisePlaceholder)
+    * _instance_
+        * [.exec()](#PromisePlaceholder+exec) ⇒
+        * [.collect(obj)](#PromisePlaceholder+collect) ⇒ [<code>PromisePlaceholder</code>](#PromisePlaceholder)
+    * _static_
+        * [.withAsync](#PromisePlaceholder.withAsync)
+
+
+* * *
+
+<a name="PromisePlaceholder+exec"></a>
+
+### promisePlaceholder.exec() ⇒
+Calls async.parallel and stores the values at the respective places!
+
+**Kind**: instance method of [<code>PromisePlaceholder</code>](#PromisePlaceholder)  
+**Returns**: Result of async.parallel (may be discarded)  
+
+* * *
+
+<a name="PromisePlaceholder+collect"></a>
+
+### promisePlaceholder.collect(obj) ⇒ [<code>PromisePlaceholder</code>](#PromisePlaceholder)
+Instead of calling the promisePlaceholder at every step, it may be desirable to deep iterate the object and collect all the functions!
+
+**Kind**: instance method of [<code>PromisePlaceholder</code>](#PromisePlaceholder)  
+
+| Param | Type |
+| --- | --- |
+| obj | <code>Object</code> | 
+
+**Example**  
+```js
+// In the example for [Placeholder](Placeholder), instead of wrapping every object having a promise inside a pp() call,
+ // just call once like:
+ const obj = {
+     data1: {
+         teams: async () => getTeamsFromApi(),
+         playersInfo: {
+             active: async () => getActivePlayersFromApi(),
+             retired: async () => getRetiredPlayersFromApi(),
+             joinedIn2007: async () => getPlayersFromApi(2007),
+             joinedLater: {
+                     2008: async () => getJoinedLaterThanFromApi(2007)
+             }
+         }
+     }
+ }
+
+// Now:
+await (new PromisePlaceholder()).collect(obj).exec();
+After await resumes, obj will have all the values instead of functions! 
+```
+
+* * *
+
 <a name="PromisePlaceholder.withAsync"></a>
 
 ### PromisePlaceholder.withAsync
@@ -89,6 +146,8 @@ Ability to pass custom async library such as another version of async or any oth
      new PromisePlaceholder //(See below),
      new (PromisePlaceholder.withAsync(customAsyncOrOtherLib)) // The outer brackets are necessary
 ```
+
+* * *
 
 ## Run tests
 
