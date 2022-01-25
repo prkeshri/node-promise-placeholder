@@ -17,6 +17,8 @@ const withAsync = function (async) {
             const internal = {
                 refs: [],
                 parallels: [],
+                reviver: null,
+                results: null
             }
             const refs = internal.refs;
             const parallels = internal.parallels;
@@ -34,6 +36,37 @@ const withAsync = function (async) {
             f[INTERNAL] = internal;
 
             return f;
+        }
+
+        /**
+         * @description Sets a reviver otherwise plain assignment is used. Can be used to revive manually! 
+         * @param {function(original_object, key, value, complete_result_set, result_index) | string} reviver If reviver = 'ignore', the revival will be skipped and the values need to be revived manually
+         */
+        setReviver(reviver) {
+            this[INTERNAL].reviver = reviver;
+        }
+
+        /**
+         * @description Returns results array of execution
+         * @returns results
+         */
+        getResults() {
+            return this[INTERNAL].results;
+        }
+        
+        /**
+         * @description Returns internal references
+         * @returns refs
+         */
+        getRefs() {
+            return this[INTERNAL].refs;
+        }
+        
+        /**
+         * @returns Length of current of functions in the queue
+         */
+        size() {
+            return this[INTERNAL].refs.length;
         }
 
         /**
@@ -85,11 +118,21 @@ const withAsync = function (async) {
             const internal = this[INTERNAL];
             const refs = internal.refs;
             const parallels = internal.parallels;
+            const reviver = internal.reviver;
 
             args.unshift(parallels);
             const results = await async[asyncKey].apply(async, args);
+            internal.results = results;
+
+            if(reviver === 'ignore') {
+                return;
+            }
             refs.forEach(({ obj, k }, i) => {
-                obj[k] = results[i];
+                if(reviver) {
+                    reviver(obj, k, results[i], results, i);
+                } else {
+                    obj[k] = results[i];
+                }
             });
 
             return results;

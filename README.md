@@ -27,6 +27,11 @@ npm install
 Creates a placeholder object which can be used to keep functions which can be called in parallel and post execution, the values will be assigned at proper places!
 
 **Kind**: global constant  
+**Notes**: 1. All the methods of async library are mapped with exec followed by first letter uppercase method name. <br/>
+   For example: <br/>
+   ```async.parallelLimit``` will be used when ```pp.execParallelLimit(2)``` will be called // This will make 2 concurrent calls at a time <br/>
+   ... etc
+   2. exec is short for execParallel which uses async.parallel <br/>  
 **Example**  
 ```js
 // Consider the following scenario where we need complete data on teams.
@@ -71,22 +76,48 @@ Creates a placeholder object which can be used to keep functions which can be ca
      }
  }
 ```
-**Notes**: 1. All the methods of async library are mapped with exec followed by first letter uppercase method name. <br/>
-   For example: <br/>
-   ```async.parallelLimit``` will be used when ```pp.execParallelLimit(2)``` will be called // This will make 2 concurrent calls at a time <br/>
-   ... etc
-   2. exec is short for execParallel which uses async.parallel <br/>  
 
 * [PromisePlaceholder](#PromisePlaceholder)
     * _instance_
+        * [.setReviver(reviver)](#PromisePlaceholder+setReviver)
+        * [.getResults()](#PromisePlaceholder+getResults) ⇒
+        * [.getRefs()](#PromisePlaceholder+getRefs) ⇒
+        * [.size()](#PromisePlaceholder+size) ⇒
         * [.exec()](#PromisePlaceholder+exec) ⇒
         * [.collect(obj)](#PromisePlaceholder+collect) ⇒ [<code>PromisePlaceholder</code>](#PromisePlaceholder)
     * _static_
         * [.withAsync](#PromisePlaceholder.withAsync)
 
+<a name="PromisePlaceholder+setReviver"></a>
 
-* * *
+### promisePlaceholder.setReviver(reviver)
+Sets a reviver otherwise plain assignment is used. Can be used to revive manually!
 
+**Kind**: instance method of [<code>PromisePlaceholder</code>](#PromisePlaceholder)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| reviver | <code>function</code> \| <code>string</code> | If reviver = 'ignore', the revival will be skipped and the values need to be revived manually |
+
+<a name="PromisePlaceholder+getResults"></a>
+
+### promisePlaceholder.getResults() ⇒
+Returns results array of execution
+
+**Kind**: instance method of [<code>PromisePlaceholder</code>](#PromisePlaceholder)  
+**Returns**: results  
+<a name="PromisePlaceholder+getRefs"></a>
+
+### promisePlaceholder.getRefs() ⇒
+Returns internal references
+
+**Kind**: instance method of [<code>PromisePlaceholder</code>](#PromisePlaceholder)  
+**Returns**: refs  
+<a name="PromisePlaceholder+size"></a>
+
+### promisePlaceholder.size() ⇒
+**Kind**: instance method of [<code>PromisePlaceholder</code>](#PromisePlaceholder)  
+**Returns**: Length of current of functions in the queue  
 <a name="PromisePlaceholder+exec"></a>
 
 ### promisePlaceholder.exec() ⇒
@@ -94,9 +125,6 @@ Calls async.parallel and stores the values at the respective places!
 
 **Kind**: instance method of [<code>PromisePlaceholder</code>](#PromisePlaceholder)  
 **Returns**: Result of async.parallel (may be discarded)  
-
-* * *
-
 <a name="PromisePlaceholder+collect"></a>
 
 ### promisePlaceholder.collect(obj) ⇒ [<code>PromisePlaceholder</code>](#PromisePlaceholder)
@@ -130,9 +158,6 @@ Instead of calling the promisePlaceholder at every step, it may be desirable to 
 await (new PromisePlaceholder()).collect(obj).exec();
 After await resumes, obj will have all the values instead of functions! 
 ```
-
-* * *
-
 <a name="PromisePlaceholder.withAsync"></a>
 
 ### PromisePlaceholder.withAsync
@@ -146,7 +171,6 @@ Ability to pass custom async library such as another version of async or any oth
      new PromisePlaceholder //(See below),
      new (PromisePlaceholder.withAsync(customAsyncOrOtherLib)) // The outer brackets are necessary
 ```
-
 * * *
 
 ## Run tests
