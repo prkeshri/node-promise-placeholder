@@ -13,7 +13,7 @@ const utils = require('./utils');
  */
 const withAsync = function (async) {
     class PromisePlaceholder {
-        constructor() {
+        constructor(mapper) {
             const internal = {
                 refs: [],
                 parallels: [],
@@ -24,6 +24,9 @@ const withAsync = function (async) {
             const parallels = internal.parallels;
             const f = (obj) => {
                 Object.entries(obj).forEach(([k, v]) => {
+                    if(mapper) {
+                        v = mapper(v, obj, k);
+                    }
                     if (v instanceof Function) {
                         refs.push({ obj, k });
                         parallels.push(v);
@@ -79,7 +82,7 @@ const withAsync = function (async) {
 
         /**
          * @description Instead of calling the promisePlaceholder at every step, it may be desirable to deep iterate the object and collect all the functions!
-         * @param { Object } obj 
+         * @param { Object } obj Object to iterate
          * @returns { PromisePlaceholder }
          * 
          * @example 
